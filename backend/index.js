@@ -6,8 +6,9 @@ import fs from "fs";
 import path from "path";
 import axios from "axios";
 
-import uploadRoutes from "./routes/upload.routes.js";
+import createUploadRoutes from "./routes/upload.routes.js";
 import summaryRoutes from "./routes/summary.routes.js";
+import warningsRoutes from "./routes/warnings.routes.js";
 
 const app = express();
 app.use(cors());
@@ -32,8 +33,9 @@ export const upload = multer({ storage });
 app.get("/health", (req, res) => res.json({ status: "Backend running" }));
 
 // Register routes
-app.use("/api", uploadRoutes);
+app.use("/api", createUploadRoutes(upload));
 app.use("/api", summaryRoutes);
+app.use("/api", warningsRoutes);
 
 // Server
 const SERVER_URL = process.env.SERVER_URL;
