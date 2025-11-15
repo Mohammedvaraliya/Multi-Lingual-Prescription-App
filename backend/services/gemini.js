@@ -11,6 +11,17 @@ function cleanJSON(text) {
     .trim();
 }
 
+function cleanSummary(text) {
+  return text
+    .replace(/\*\*/g, "") // remove bold markers
+    .replace(/\*/g, "") // remove bullets
+    .replace(/#/g, "") // remove markdown headings
+    .replace(/_/g, "") // remove italic markers
+    .replace(/\n{2,}/g, "\n") // collapse multiple newlines
+    .replace(/\s{2,}/g, " ") // collapse extra spaces
+    .trim();
+}
+
 // =======================================================
 // 1️⃣ Extract full prescription JSON
 // =======================================================
@@ -70,14 +81,24 @@ export async function generateSummaryFromJSON(finalJSON) {
 Create a clear, patient-friendly medical summary from this JSON:
 ${JSON.stringify(finalJSON, null, 2)}
 
-Rules:
-- Explain medicines and dosages in simple words
-- Explain diagnosis clearly if present
-- Do not add new facts
-- Return plain text ONLY (no JSON, no lists)
+STRICT RULES:
+- DO NOT use markdown formatting.
+- DO NOT use **bold**.
+- DO NOT use *bullets.
+- DO NOT use lists.
+- NO special characters like *, _, #.
+- NO markdown headings.
+- Output plain text only.
+- Short paragraphs only.
 `;
 
   const result = await model.generateContent(prompt);
 
-  return result.response.text().replace(/```/g, "").trim();
+  // Raw Gemini output
+  let text = result.response.text();
+
+  // Clean any leftover formatting
+  text = cleanSummary(text);
+
+  return text;
 }

@@ -4,9 +4,10 @@ import cors from "cors";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-
+import axios from "axios";
 import { extractPrescription } from "./services/gemini.js";
 import { translateLingo } from "./services/lingo.js";
+import { generateAudio } from "./services/tts.js";
 
 const app = express();
 app.use(cors());
@@ -65,25 +66,41 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 // =======================================================
 app.post("/api/generate-summary", async (req, res) => {
   try {
-    const targetLocale = req.body.targetLocale || "gu";
+    const targetLocale = req.body.targetLocale || "hi";
     const data = req.body;
 
-    // --- Regenerate summary based on FINAL JSON ---
+    // 1. English Summary (Gemini)
     const { generateSummaryFromJSON } = await import("./services/gemini.js");
     const summaryEnglish = await generateSummaryFromJSON(data);
 
+    // 2. Translated Summary (Lingo)
     const summaryTranslated = await translateLingo(
       summaryEnglish,
       targetLocale
     );
+    if (!summaryTranslated) {
+      throw new Error("Translation failed");
+    }
 
-    res.json({
+    // 3. FREE TTS using gTTS
+    let audioBase64 = null; // <-- declare here so it exists outside the if
+
+    const audioBuffer = await generateAudio(summaryTranslated, targetLocale);
+    audioBase64 = audioBuffer.toString("base64");
+
+    const fileName = `audio_${Date.now()}.mp3`;
+    const savePath = path.join(UPLOAD_DIR, fileName);
+
+    fs.writeFileSync(savePath, audioBuffer);
+
+    return res.json({
       summaryEnglish,
       summaryTranslated,
+      audioBase64,
     });
   } catch (err) {
     console.error("❌ Summary Error:", err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 
