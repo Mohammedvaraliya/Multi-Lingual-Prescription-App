@@ -1,1 +1,270 @@
 @import "tailwindcss";
+
+/* Define base styles */
+:root {
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-secondary: #6b7280;
+  --color-secondary-hover: #4b5563;
+  --color-card-bg: #ffffff;
+  --color-card-border: #e5e7eb;
+  --color-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --color-warning-bg: #fef3c7;
+  --color-warning-border: #f59e0b;
+  --color-warning-text: #92400e;
+  --color-error-bg: #fee2e2;
+  --color-error-border: #ef4444;
+  --color-error-text: #b91c1c;
+  --color-blue-bg: #dbeafe;
+  --color-blue-border: #3b82f6;
+  --color-blue-text: #1e3a8a;
+  --color-green-bg: #dcfce7;
+  --color-green-border: #22c55e;
+  --color-green-text: #166534;
+  --color-orange-bg: #fed7aa;
+  --color-orange-border: #f97316;
+  --color-orange-text: #7c2d12;
+}
+
+/* Component styles using explicit CSS instead of @apply */
+.card {
+  background-color: var(--color-card-bg);
+  border-radius: 1rem;
+  border: 1px solid var(--color-card-border);
+  box-shadow: var(--color-card-shadow);
+  padding: 1.5rem;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.btn-primary:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-secondary);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-secondary);
+  color: white;
+}
+
+/* Warning and error styles */
+.warning-box {
+  background-color: var(--color-warning-bg);
+  border-left: 4px solid var(--color-warning-border);
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.error-box {
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.blue-box {
+  background-color: var(--color-blue-bg);
+  border: 1px solid var(--color-blue-border);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.green-box {
+  background-color: var(--color-green-bg);
+  border: 1px solid var(--color-green-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.orange-box {
+  background-color: var(--color-orange-bg);
+  border: 1px solid var(--color-orange-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+/* Drag and drop styles */
+.drag-area {
+  border: 4px dashed #d1d5db;
+  border-radius: 1rem;
+  padding: 3rem;
+  text-align: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.drag-area-active {
+  border-color: var(--color-primary);
+  background-color: #eff6ff;
+}
+
+.drag-area:hover {
+  border-color: #9ca3af;
+}
+
+/* Text editor styles */
+.text-editor {
+  width: 100%;
+  height: 16rem;
+  padding: 1rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas,
+    "Liberation Mono", Menlo, monospace;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.text-editor:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Audio player styles */
+.audio-player {
+  background: linear-gradient(to right, #dbeafe, #bfdbfe);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid #bfdbfe;
+}
+
+.audio-progress {
+  width: 100%;
+  height: 0.5rem;
+  background-color: #d1d5db;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.audio-progress:hover {
+  height: 0.75rem;
+}
+
+.audio-progress-bar {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: 9999px;
+}
+
+/* Medicine timeline styles */
+.medicine-timeline {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.timeline-item {
+  width: 3.5rem;
+  height: 3.5rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7eb;
+}
+
+/* Flex utilities */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Responsive grid utilities */
+@media (min-width: 768px) {
+  .md-grid-cols-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .md-grid-cols-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+/* Text utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
