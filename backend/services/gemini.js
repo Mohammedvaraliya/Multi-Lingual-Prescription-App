@@ -31,9 +31,16 @@ export async function extractPrescription(imagePath) {
   const imageData = fs.readFileSync(imagePath);
 
   const prompt = `
-You are a medical prescription extraction system.
+You are a strict medical prescription extraction system.
 
-Extract ALL fields and return ONLY valid JSON:
+Your job is to:
+1. FIRST extract the raw text EXACTLY as seen on the prescription image.
+2. THEN extract structured JSON ONLY from the extracted text.
+3. DO NOT hallucinate any medicines, dosage, or routes.
+4. DO NOT create any medicine name that does not appear in the raw text.
+5. If unsure about a field, return an empty string—never guess.
+
+Return ONLY valid JSON in this format:
 
 {
   "patientDetails": { "name": "", "age": "", "date": "" },
@@ -46,10 +53,17 @@ Extract ALL fields and return ONLY valid JSON:
   "treatmentAndAdvice": [
     { "item": "", "route": "", "dosage": "", "timing": "", "notes": "" }
   ],
+  "rawExtractedText": "",
   "summary": ""
 }
 
-Rules:
+RULES FOR MEDICINES:
+- A medicine must appear EXACTLY in rawExtractedText to be included.
+- No hallucinated or invented medicines allowed.
+- Keep spelling the same as the prescription.
+- If the text is unclear, set item: "".
+
+RULES:
 - summary = short explanation of full prescription
 - No markdown
 - No backticks
