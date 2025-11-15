@@ -1,0 +1,60 @@
+# -----------------------
+# Node.js Essentials
+# -----------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Logs
+logs/
+*.log
+*.log.*
+debug.log
+error.log
+
+# -----------------------
+# Environment Files
+# -----------------------
+.env
+.env.local
+.env.*.local
+
+# -----------------------
+# OS / Editor Trash
+# -----------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# -----------------------
+# Uploads / Temporary Files
+# -----------------------
+uploads/
+temp/
+*.tmp
+
+# Prevent accidental commit of local scripts or artifacts
+*.bak
+*.swp
+*.swo
+
+# -----------------------
+# Build / Cache
+# -----------------------
+dist/
+build/
+.cache/
+coverage/
+
+# -----------------------
+# Lock Files (Optional)
+# -----------------------
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# If using TypeScript later
+*.tsbuildinfo
