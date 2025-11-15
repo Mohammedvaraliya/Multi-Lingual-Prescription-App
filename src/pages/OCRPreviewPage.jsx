@@ -1,43 +1,38 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePrescription } from "../context/PrescriptionContext";
-import { parseOCR } from "../utils/api";
+import { generateSummary, getWarnings } from "../utils/api";
 import { WarningIcon } from "../components/Icons";
 import { TextareaSkeleton } from "../components/LoadingSkeletons";
 
 export default function OCRPreviewPage() {
   const navigate = useNavigate();
-  const { ocrText, setOcrText, confidence } = usePrescription();
-  const [loading, setLoading] = useState(false);
+  const { setLoading: setContextLoading } = usePrescription(); // Renamed to avoid conflict
+  const [loading, setLoading] = useState(false); // Fixed variable name
   const [warnings, setWarnings] = useState([]);
   const [editMode, setEditMode] = useState(false);
-  const [prescriptionData, setPrescriptionData] = useState(null);
   const [formData, setFormData] = useState(null);
+  const [summaryData, setSummaryData] = useState(null);
 
-  // Parse OCR text when component mounts
+  // Initialize form data when component mounts
   useEffect(() => {
-    if (ocrText) {
-      parseOCRText();
+    // Try to get data from sessionStorage
+    const storedData = sessionStorage.getItem("prescriptionData");
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      setFormData(JSON.parse(JSON.stringify(parsedData))); // Deep copy for form
+      generateWarnings(parsedData);
     }
-  }, [ocrText]);
+  }, []);
 
-  const parseOCRText = async () => {
-    setLoading(true);
-    setWarnings([]);
-
+  const generateWarnings = async (data) => {
     try {
-      const result = await parseOCR(ocrText);
-      setPrescriptionData(result);
-      setFormData(JSON.parse(JSON.stringify(result))); // Deep copy for form
-      setOcrText(ocrText);
-
-      if (result.warnings && result.warnings.length > 0) {
-        setWarnings(result.warnings);
-      }
+      const warningsList = await getWarnings(data);
+      setWarnings(warningsList);
     } catch (err) {
-      setWarnings([err.message]);
-    } finally {
-      setLoading(false);
+      console.error("Failed to get warnings:", err);
+      // Convert error message to warning object format
+      setWarnings([{ message: err.message }]);
     }
   };
 
@@ -49,18 +44,28 @@ export default function OCRPreviewPage() {
     setLoading(true);
     try {
       // Store updated data in sessionStorage
-      sessionStorage.setItem("parsedPrescription", JSON.stringify(formData));
-      setPrescriptionData(formData);
+      sessionStorage.setItem("prescriptionData", JSON.stringify(formData));
+
+      // Generate new warnings based on updated data
+      const warningsList = await getWarnings(formData);
+      setWarnings(warningsList);
+
       setEditMode(false);
     } catch (err) {
-      setWarnings([err.message]);
+      // Convert error message to warning object format
+      setWarnings([{ message: err.message }]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    setFormData(JSON.parse(JSON.stringify(prescriptionData))); // Reset to original
+    // Reset to original data from sessionStorage
+    const storedData = sessionStorage.getItem("prescriptionData");
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      setFormData(JSON.parse(JSON.stringify(parsedData)));
+    }
     setEditMode(false);
   };
 
@@ -101,12 +106,26 @@ export default function OCRPreviewPage() {
     });
   };
 
-  const handleContinue = () => {
-    sessionStorage.setItem(
-      "parsedPrescription",
-      JSON.stringify(prescriptionData)
-    );
-    navigate("/prescription-view");
+  const handleContinue = async () => {
+    setLoading(true);
+    try {
+      // Generate summary for the prescription data
+      const summary = await generateSummary(formData);
+      setSummaryData(summary);
+
+      // Store summary data in sessionStorage
+      sessionStorage.setItem("summaryData", JSON.stringify(summary));
+
+      // Store updated prescription data
+      sessionStorage.setItem("prescriptionData", JSON.stringify(formData));
+
+      navigate("/prescription-view");
+    } catch (err) {
+      // Convert error message to warning object format
+      setWarnings([{ message: err.message }]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -119,7 +138,7 @@ export default function OCRPreviewPage() {
     );
   }
 
-  if (!prescriptionData) {
+  if (!formData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4 md:p-8">
         <div className="max-w-4xl mx-auto text-center py-12">
@@ -153,20 +172,8 @@ export default function OCRPreviewPage() {
           </p>
         </div>
 
-        {/* Confidence Badge */}
-        <div className="mb-8">
-          <div className="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full">
-            <span className="text-sm font-medium text-blue-900">
-              OCR Confidence:
-            </span>
-            <span className="text-sm font-bold text-blue-600">
-              {(confidence * 100).toFixed(0)}%
-            </span>
-          </div>
-        </div>
-
         {/* Warning Section */}
-        {(confidence < 0.85 || warnings.length > 0) && (
+        {warnings.length > 0 && (
           <div className="mb-8 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r">
             <div className="flex gap-3">
               <WarningIcon />
@@ -175,11 +182,8 @@ export default function OCRPreviewPage() {
                   Please Review Carefully
                 </p>
                 <ul className="list-disc list-inside text-sm text-yellow-800 mt-2">
-                  {confidence < 0.85 && (
-                    <li>Low confidence in text extraction</li>
-                  )}
                   {warnings.map((w, i) => (
-                    <li key={i}>{w}</li>
+                    <li key={i}>{w.message || w}</li>
                   ))}
                 </ul>
               </div>
@@ -231,7 +235,7 @@ export default function OCRPreviewPage() {
                     />
                   ) : (
                     <div className="p-2 bg-gray-50 rounded-md border border-gray-200">
-                      {prescriptionData.patientDetails[field]}
+                      {formData.patientDetails[field]}
                     </div>
                   )}
                 </div>
@@ -261,7 +265,7 @@ export default function OCRPreviewPage() {
                     />
                   ) : (
                     <div className="p-2 bg-gray-50 rounded-md border border-gray-200 min-h-[40px]">
-                      {prescriptionData.doctorsNotes[field] || (
+                      {formData.doctorsNotes[field] || (
                         <span className="text-gray-400">Not specified</span>
                       )}
                     </div>
@@ -290,9 +294,7 @@ export default function OCRPreviewPage() {
                         />
                       ) : (
                         <div className="p-2 bg-gray-50 rounded-md border border-gray-200">
-                          {prescriptionData.doctorsNotes.onExamination[
-                            field
-                          ] || (
+                          {formData.doctorsNotes.onExamination[field] || (
                             <span className="text-gray-400">Not specified</span>
                           )}
                         </div>
@@ -339,8 +341,10 @@ export default function OCRPreviewPage() {
                               }
                               className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                             >
+                              <option value="">Select route</option>
                               <option value="oral">Oral</option>
                               <option value="topical">Topical</option>
+                              <option value="iv">IV</option>
                               <option value="injection">Injection</option>
                               <option value="inhalation">Inhalation</option>
                             </select>
@@ -360,7 +364,11 @@ export default function OCRPreviewPage() {
                           )
                         ) : (
                           <div className="p-2 bg-gray-50 rounded-md border border-gray-200">
-                            {medicine[field]}
+                            {medicine[field] || (
+                              <span className="text-gray-400">
+                                Not specified
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>
@@ -401,8 +409,14 @@ export default function OCRPreviewPage() {
           >
             Back to Upload
           </button>
-          <button onClick={handleContinue} className="btn-primary flex-1">
-            Continue to Prescription View
+          <button
+            onClick={handleContinue}
+            className="btn-primary flex-1"
+            disabled={loading}
+          >
+            {loading
+              ? "Generating Summary..."
+              : "Continue to Prescription View"}
           </button>
         </div>
 

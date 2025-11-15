@@ -1,96 +1,81 @@
-// Mock API functions for prescription reader
-
-// Sample prescription data structure matching the desired JSON format
-const mockPrescriptionData = {
-  patientDetails: {
-    name: "Sachin Bansare",
-    age: "28",
-    date: "12/20/22",
-  },
-  doctorsNotes: {
-    complaint: "Dental pain and swelling",
-    impression: "Dental infection",
-    explanation: "Patient presents with tooth pain and gum inflammation",
-    onExamination: {
-      bp: "120/80",
-      pr: "72",
-      temp: "98.6°F",
-      spo2: "99%",
-    },
-  },
-  treatmentAndAdvice: [
-    {
-      item: "Augmentin 625mg tablet",
-      route: "oral",
-      dosage: "1-0-1",
-      timing: "after meals, for 5 days",
-      notes: "Complete full course",
-    },
-    {
-      item: "Evaflam tablet",
-      route: "oral",
-      dosage: "1-0-1",
-      timing: "after meals, for 5 days",
-      notes: "Take with water",
-    },
-    {
-      item: "PariD 40mg tablet",
-      route: "oral",
-      dosage: "1-0-0",
-      timing: "before meals, for 5 days",
-      notes: "Avoid antacids",
-    },
-    {
-      item: "Hexigel gum paint",
-      route: "topical",
-      dosage: "massage 1-0-1",
-      timing: "once a week",
-      notes: "Apply gently on affected area",
-    },
-  ],
-  canonical: [
-    "Augmentin 625mg tablet via oral, dosage: 1-0-1, timing: after meals, for 5 days",
-    "Evaflam tablet via oral, dosage: 1-0-1, timing: after meals, for 5 days",
-    "PariD 40mg tablet via oral, dosage: 1-0-0, timing: before meals, for 5 days",
-    "Hexigel gum paint via topical, dosage: massage 1-0-1, timing: once a week",
-  ],
-  summaryEnglish:
-    "Mr. Sachin Bansare, age 28, is prescribed Augmentin 625mg tablet twice daily after meals, Evaflam tablet twice daily after meals, and PariD 40mg tablet once daily before meals, each for 5 days. Additionally, Hexigel gum paint should be applied and massaged once a week.",
-  summaryTranslated:
-    "श्री सचिन बनसारे, उम्र 28 वर्ष, को ऑगमेंटिन 625 मिलीग्राम की गोली दिन में दो बार खाने के बाद, एवाफ्लैम गोली दिन में दो बार खाने के बाद, और पैरिड 40 मिलीग्राम की गोली दिन में एक बार खाने से पहले, प्रत्येक 5 दिनों के लिए निर्धारित की गई है। इसके अतिरिक्त, हेक्सिजेल गम पेंट को सप्ताह में एक बार लगाकर मालिश करनी चाहिए।",
-};
+// API functions for prescription reader
 
 // Simulate API delay
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Base URL for the API
+const API_BASE_URL = "https://multi-lingual-prescription-app.onrender.com/api";
+
 export const uploadPrescription = async (file, language) => {
-  await delay(1500);
-  return {
-    success: true,
-    rawOCRText: mockPrescriptionData.treatmentAndAdvice
-      .map((t) => `${t.item} ${t.dosage} ${t.timing}`)
-      .join("\n"),
-    confidence: 0.92,
-  };
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${API_BASE_URL}/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      ...data,
+      confidence: 0.92, // Default confidence since API doesn't provide it
+    };
+  } catch (error) {
+    console.error("Upload error:", error);
+    throw new Error("Failed to upload prescription. Please try again.");
+  }
 };
 
-export const extractOCRText = async (imageFile) => {
-  await delay(1200);
-  return {
-    text: mockPrescriptionData.treatmentAndAdvice
-      .map((t) => `${t.item} ${t.dosage} ${t.timing}`)
-      .join("\n"),
-    confidence: 0.92,
-  };
+export const generateSummary = async (prescriptionData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/generate-summary`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(prescriptionData),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Summary generation failed with status: ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Summary generation error:", error);
+    throw new Error("Failed to generate summary. Please try again.");
+  }
 };
 
-export const parseOCR = async (text) => {
-  await delay(800);
-  return {
-    ...mockPrescriptionData,
-    confidence: 0.92,
-    warnings: [],
-  };
+export const getWarnings = async (prescriptionData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/warnings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(prescriptionData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Warnings fetch failed with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.warnings || [];
+  } catch (error) {
+    console.error("Warnings fetch error:", error);
+    return [];
+  }
 };
 
 export const translateText = async (text, targetLanguage) => {
@@ -112,6 +97,25 @@ export const generateAudio = async (text, language) => {
 
   // Return mock audio URL - in production, this would be a real audio file
   return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+};
+
+// Convert base64 to blob URL
+export const base64ToBlobUrl = (base64Data, mimeType = "audio/mp3") => {
+  try {
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mimeType });
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    console.error("Error converting base64 to blob:", error);
+    return null;
+  }
 };
 
 // Language-specific instructions

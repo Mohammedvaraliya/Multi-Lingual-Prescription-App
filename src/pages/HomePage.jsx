@@ -1,63 +1,66 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useLanguage } from '../context/LanguageContext'
-import { usePrescription } from '../context/PrescriptionContext'
-import { useUpload } from '../hooks/useUpload'
-import { UploadIcon } from '../components/Icons'
-import { LanguageSelector } from '../components/LanguageSelector'
-import { UploadSkeleton } from '../components/LoadingSkeletons'
-import { uploadPrescription, extractOCRText } from '../utils/api'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../context/LanguageContext";
+import { usePrescription } from "../context/PrescriptionContext";
+import { useUpload } from "../hooks/useUpload";
+import { UploadIcon } from "../components/Icons";
+import { LanguageSelector } from "../components/LanguageSelector";
+import { UploadSkeleton } from "../components/LoadingSkeletons";
+import { uploadPrescription } from "../utils/api";
 
 export default function HomePage() {
-  const navigate = useNavigate()
-  const { selectedLanguage } = useLanguage()
-  const { setOcrText, setConfidence, setLoading } = usePrescription()
-  const { preview, uploading, error, handleFileSelect } = useUpload()
-  const [dragActive, setDragActive] = useState(false)
-  const [file, setFile] = useState(null)
+  const navigate = useNavigate();
+  const { selectedLanguage } = useLanguage();
+  const { setLoading } = usePrescription(); // Only using setLoading from context
+  const { preview, uploading, error, handleFileSelect } = useUpload();
+  const [dragActive, setDragActive] = useState(false);
+  const [file, setFile] = useState(null);
 
   const handleDrag = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(e.type === 'dragenter' || e.type === 'dragover')
-  }
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(e.type === "dragenter" || e.type === "dragover");
+  };
 
   const handleDrop = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
 
-    const droppedFile = e.dataTransfer?.files?.[0]
+    const droppedFile = e.dataTransfer?.files?.[0];
     if (droppedFile) {
-      handleFileSelect(droppedFile)
-      setFile(droppedFile)
+      handleFileSelect(droppedFile);
+      setFile(droppedFile);
     }
-  }
+  };
 
   const handleInputChange = (e) => {
-    const selectedFile = e.target.files?.[0]
+    const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      handleFileSelect(selectedFile)
-      setFile(selectedFile)
+      handleFileSelect(selectedFile);
+      setFile(selectedFile);
     }
-  }
+  };
 
   const handleSubmit = async () => {
-    if (!file) return
+    if (!file) return;
 
     try {
-      setLoading(true)
-      const uploadResult = await uploadPrescription(file, selectedLanguage)
-      
-      const ocrResult = await extractOCRText(file)
-      setOcrText(ocrResult.text)
-      setConfidence(ocrResult.confidence)
+      setLoading(true);
+      const result = await uploadPrescription(file, selectedLanguage);
 
-      navigate('/ocr-preview')
+      // Store in sessionStorage for other pages
+      sessionStorage.setItem("prescriptionData", JSON.stringify(result));
+
+      navigate("/ocr-preview");
     } catch (err) {
-      console.error('Upload failed:', err)
+      console.error("Upload failed:", err);
+      // Display error to user
+      alert(`Upload failed: ${err.message || "Please try again"}`);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4 md:p-8">
@@ -91,8 +94,8 @@ export default function HomePage() {
                 onDrop={handleDrop}
                 className={`border-4 border-dashed rounded-2xl p-12 text-center transition-colors ${
                   dragActive
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 hover:border-gray-400'
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-300 hover:border-gray-400"
                 }`}
               >
                 <div className="flex flex-col items-center">
@@ -147,7 +150,7 @@ export default function HomePage() {
                   disabled={uploading}
                   className="btn-primary w-full mt-8"
                 >
-                  {uploading ? 'Processing...' : 'Continue to OCR Check'}
+                  {uploading ? "Processing..." : "Continue to OCR Check"}
                 </button>
               )}
             </>
@@ -171,5 +174,5 @@ export default function HomePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
