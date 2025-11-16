@@ -26,6 +26,7 @@ export default function uploadRoutes(upload) {
         doctorsNotes: data.doctorsNotes,
         treatmentAndAdvice: data.treatmentAndAdvice,
         canonical,
+        targetLocale: req.body.targetedValue || "hi",
       });
     } catch (err) {
       console.error("❌ Upload Error:", err);
