@@ -31,42 +31,114 @@ export async function extractPrescription(imagePath) {
   const imageData = fs.readFileSync(imagePath);
 
   const prompt = `
-You are a strict medical prescription extraction system.
+You are a highly strict and reliable medical prescription extraction system.
 
-Your job is to:
-1. FIRST extract the raw text EXACTLY as seen on the prescription image.
-2. THEN extract structured JSON ONLY from the extracted text.
-3. DO NOT hallucinate any medicines, dosage, or routes.
-4. DO NOT create any medicine name that does not appear in the raw text.
-5. If unsure about a field, return an empty string—never guess.
+Your task has TWO phases:
 
-Return ONLY valid JSON in this format:
+====================================================
+PHASE 1 — RAW TEXT EXTRACTION
+====================================================
+- Read the prescription image.
+- Extract ALL visible text exactly as it appears.
+- DO NOT clean, fix, correct, interpret, or alter spelling.
+- DO NOT expand abbreviations.
+- If text is unclear, include it exactly as-is.
+- Include ALL text: patient info, diagnoses, medicines, timings, dosage, advice, notes, signatures — everything.
+
+====================================================
+PHASE 2 — STRUCTURED JSON EXTRACTION
+====================================================
+Using ONLY the rawExtractedText from PHASE 1, extract structured data.
+
+CRITICAL RULES:
+- DO NOT hallucinate or invent ANY medicine, dosage, timing, route, or diagnosis.
+- A medicine must appear EXACTLY in rawExtractedText to be included.
+- DO NOT normalize or change the spelling of items.
+- If unsure about any field, set it to "" (empty string).
+- Never assume meaning.
+- Never fabricate values.
+
+====================================================
+REQUIRED JSON OUTPUT FORMAT
+====================================================
+Return ONLY valid JSON in this exact structure:
 
 {
-  "patientDetails": { "name": "", "age": "", "date": "" },
+  "patientDetails": {
+    "name": "",
+    "age": "",
+    "date": ""
+  },
   "doctorsNotes": {
     "complaint": "",
     "impression": "",
     "explanation": "",
-    "onExamination": { "bp": "", "pr": "", "temp": "", "spo2": "" }
+    "onExamination": {
+      "bp": "",
+      "pr": "",
+      "temp": "",
+      "spo2": ""
+    }
   },
   "treatmentAndAdvice": [
-    { "item": "", "route": "", "dosage": "", "timing": "", "notes": "" }
+    {
+      "item": "",
+      "route": "",
+      "dosage": "",
+      "timing": "",
+      "notes": "",
+      "details": {
+        "purpose": "",
+        "mechanism": "",
+        "commonSideEffects": "",
+        "whyPrescribed": ""
+      }
+    }
   ],
   "rawExtractedText": "",
   "summary": ""
 }
 
-RULES FOR MEDICINES:
-- A medicine must appear EXACTLY in rawExtractedText to be included.
-- No hallucinated or invented medicines allowed.
-- Keep spelling the same as the prescription.
-- If the text is unclear, set item: "".
+====================================================
+DETAILS FIELD RULES (VERY IMPORTANT)
+====================================================
 
-RULES:
-- summary = short explanation of full prescription
-- No markdown
-- No backticks
+1. If the item is a clearly identifiable medicine or therapeutic product
+   (examples: ORS, 5% Dextrose, Paracetamol, Amoxicillin):
+   → You MUST fill ALL fields: purpose, mechanism, commonSideEffects, whyPrescribed.
+   → These must come from real-world standard medical knowledge.
+   → DO NOT infer medicine names. Use item EXACTLY as in rawExtractedText.
+
+2. If the item is general medical ADVICE (examples: “Adequate fluid intake”, “Rest”, “Ice pack”, “Hydration”):
+   → DO NOT fill purpose/mechanism/commonSideEffects.
+   → BUT DO fill “whyPrescribed” with a short medically accurate reason
+     why the doctor would advise this action.
+   Example: "whyPrescribed": "To maintain hydration and support recovery."
+
+3. If the item is unclear, incomplete, unreadable, or ambiguous:
+   → Leave all details fields empty.
+
+4. Never guess, assume, or fabricate medicine names or therapeutic actions.
+
+====================================================
+SUMMARY RULES
+====================================================
+- Summary must be a short, friendly explanation of the prescription.
+- Use only the clearly extracted data.
+- NO markdown.
+- NO backticks.
+- NO bold.
+- NO lists or bullets.
+- Plain text only.
+
+====================================================
+FINAL ABSOLUTE RULES
+====================================================
+- Output MUST be ONLY valid JSON.
+- No additional commentary.
+- No markdown.
+- No backticks.
+- No explanations outside the JSON.
 `;
 
   const result = await model.generateContent([

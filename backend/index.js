@@ -9,6 +9,7 @@ import axios from "axios";
 import createUploadRoutes from "./routes/upload.routes.js";
 import summaryRoutes from "./routes/summary.routes.js";
 import warningsRoutes from "./routes/warnings.routes.js";
+import medicineInfoRoutes from "./routes/medicineInfo.routes.js";
 
 const app = express();
 app.use(cors());
@@ -36,6 +37,7 @@ app.get("/health", (req, res) => res.json({ status: "Backend running" }));
 app.use("/api", createUploadRoutes(upload));
 app.use("/api", summaryRoutes);
 app.use("/api", warningsRoutes);
+app.use("/api", medicineInfoRoutes);
 
 // Server
 const SERVER_URL = process.env.SERVER_URL;
