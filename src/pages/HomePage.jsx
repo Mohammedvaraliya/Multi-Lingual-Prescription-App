@@ -15,6 +15,7 @@ export default function HomePage() {
   const { preview, uploading, error, handleFileSelect } = useUpload();
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -46,6 +47,7 @@ export default function HomePage() {
     if (!file) return;
 
     try {
+      setIsSubmitting(true);
       setLoading(true);
 
       // Create FormData to send file and language in the request body
@@ -64,12 +66,40 @@ export default function HomePage() {
       // Display error to user
       alert(`Upload failed: ${err.message || "Please try again"}`);
     } finally {
+      setIsSubmitting(false);
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4 md:p-8">
+      {/* Full-page loader overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600 mb-6"></div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                Processing Your Prescription
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                Please wait while we analyze and extract information from your
+                prescription
+              </p>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                <div
+                  className="bg-blue-600 h-2.5 rounded-full animate-pulse"
+                  style={{ width: "75%" }}
+                ></div>
+              </div>
+              <p className="text-sm text-gray-500">
+                This may take a few moments...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -153,10 +183,36 @@ export default function HomePage() {
               {preview && (
                 <button
                   onClick={handleSubmit}
-                  disabled={uploading}
-                  className="btn-primary w-full mt-8"
+                  disabled={isSubmitting}
+                  className="btn-primary w-full mt-8 flex items-center justify-center"
                 >
-                  {uploading ? "Processing..." : "Continue to OCR Check"}
+                  {isSubmitting ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    "Continue to OCR Check"
+                  )}
                 </button>
               )}
             </>

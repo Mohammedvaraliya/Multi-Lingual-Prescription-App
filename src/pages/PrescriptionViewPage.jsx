@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SunIcon, MoonIcon, PlateIcon } from "../components/Icons";
+import { SunIcon, MoonIcon, PlateIcon, InfoIcon } from "../components/Icons";
 import { PrescriptionSkeleton } from "../components/LoadingSkeletons";
+import { getMedicineInfo } from "../utils/api";
 
 export default function PrescriptionViewPage() {
   const navigate = useNavigate();
@@ -9,6 +10,8 @@ export default function PrescriptionViewPage() {
   const [loading, setLoading] = useState(true);
   const [warnings, setWarnings] = useState([]);
   const [prescriptionData, setPrescriptionData] = useState(null);
+  const [medicineDetails, setMedicineDetails] = useState({});
+  const [expandedMedicine, setExpandedMedicine] = useState(null);
 
   useEffect(() => {
     // Get prescription data from sessionStorage
@@ -71,6 +74,10 @@ export default function PrescriptionViewPage() {
 
         setMedicines(transformedMedicines);
         setWarnings(data.warnings || []);
+
+        // Fetch medicine details
+        fetchMedicineDetails(data);
+
         setLoading(false);
       } catch (err) {
         console.error("Failed to load prescription data", err);
@@ -80,6 +87,24 @@ export default function PrescriptionViewPage() {
       setLoading(false);
     }
   }, []);
+
+  const fetchMedicineDetails = async (data) => {
+    try {
+      const details = await getMedicineInfo(data);
+      // Convert array to object for easier lookup
+      const detailsMap = {};
+      details.medicines.forEach((med) => {
+        detailsMap[med.item] = med.details;
+      });
+      setMedicineDetails(detailsMap);
+    } catch (err) {
+      console.error("Failed to fetch medicine details", err);
+    }
+  };
+
+  const toggleMedicineDetails = (medicineId) => {
+    setExpandedMedicine(expandedMedicine === medicineId ? null : medicineId);
+  };
 
   const renderDosageIcons = (dosage) => {
     const items = [];
@@ -197,12 +222,23 @@ export default function PrescriptionViewPage() {
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Left: Medicine Details */}
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                    {medicine.name}
-                  </h3>
-                  <p className="text-lg text-gray-600 mb-4 font-semibold">
-                    {medicine.strength}
-                  </p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                        {medicine.name}
+                      </h3>
+                      <p className="text-lg text-gray-600 mb-4 font-semibold">
+                        {medicine.strength}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => toggleMedicineDetails(medicine.id)}
+                      className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors"
+                      aria-label="More information"
+                    >
+                      <InfoIcon />
+                    </button>
+                  </div>
 
                   <div className="space-y-3">
                     {medicine.dosage.morning > 0 && (
@@ -291,6 +327,69 @@ export default function PrescriptionViewPage() {
                   </div>
                 )}
               </div>
+
+              {/* Medicine Details Section */}
+              {expandedMedicine === medicine.id && (
+                <div className="mt-6 pt-6 border-t border-gray-200 bg-blue-50 rounded-lg p-6">
+                  <h4 className="text-xl font-bold text-gray-900 mb-4">
+                    About {medicine.name}
+                  </h4>
+
+                  {medicineDetails[medicine.name] ? (
+                    <div className="space-y-4">
+                      {medicineDetails[medicine.name].purpose && (
+                        <div>
+                          <p className="font-semibold text-gray-800 mb-1">
+                            Purpose
+                          </p>
+                          <p className="text-gray-700">
+                            {medicineDetails[medicine.name].purpose}
+                          </p>
+                        </div>
+                      )}
+
+                      {medicineDetails[medicine.name].mechanism && (
+                        <div>
+                          <p className="font-semibold text-gray-800 mb-1">
+                            How it works
+                          </p>
+                          <p className="text-gray-700">
+                            {medicineDetails[medicine.name].mechanism}
+                          </p>
+                        </div>
+                      )}
+
+                      {medicineDetails[medicine.name].whyPrescribed && (
+                        <div>
+                          <p className="font-semibold text-gray-800 mb-1">
+                            Why prescribed
+                          </p>
+                          <p className="text-gray-700">
+                            {medicineDetails[medicine.name].whyPrescribed}
+                          </p>
+                        </div>
+                      )}
+
+                      {medicineDetails[medicine.name].commonSideEffects && (
+                        <div>
+                          <p className="font-semibold text-gray-800 mb-1">
+                            Common side effects
+                          </p>
+                          <p className="text-gray-700">
+                            {medicineDetails[medicine.name].commonSideEffects}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-gray-600">
+                        No additional information available
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Icon Timeline */}
               {(medicine.dosage.morning > 0 ||

@@ -75,6 +75,30 @@ export const getWarnings = async (prescriptionData) => {
   }
 };
 
+export const getMedicineInfo = async (prescriptionData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/medicine-info`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(prescriptionData),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Medicine info fetch failed with status: ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Medicine info fetch error:", error);
+    return { medicines: [] };
+  }
+};
+
 export const translateText = async (text, targetLanguage) => {
   await delay(600);
 
