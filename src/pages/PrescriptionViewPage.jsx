@@ -1,36 +1,117 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { SunIcon, MoonIcon, PlateIcon } from '../components/Icons'
-import { PrescriptionSkeleton } from '../components/LoadingSkeletons'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { SunIcon, MoonIcon, PlateIcon } from "../components/Icons";
+import { PrescriptionSkeleton } from "../components/LoadingSkeletons";
 
 export default function PrescriptionViewPage() {
-  const navigate = useNavigate()
-  const [medicines, setMedicines] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [warnings, setWarnings] = useState([])
+  const navigate = useNavigate();
+  const [medicines, setMedicines] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [warnings, setWarnings] = useState([]);
+  const [prescriptionData, setPrescriptionData] = useState(null);
 
   useEffect(() => {
-    // Get parsed prescription from sessionStorage
-    const stored = sessionStorage.getItem('parsedPrescription')
+    // Get prescription data from sessionStorage
+    const stored = sessionStorage.getItem("prescriptionData");
     if (stored) {
       try {
-        const data = JSON.parse(stored)
-        setMedicines(data.medicines || [])
-        setWarnings(data.warnings || [])
-        setLoading(false)
+        const data = JSON.parse(stored);
+        setPrescriptionData(data);
+
+        // Transform treatmentAndAdvice to medicines format
+        const transformedMedicines = data.treatmentAndAdvice.map(
+          (item, index) => {
+            // Parse dosage if it's in the format "1-0-1"
+            let dosage = { morning: 0, afternoon: 0, night: 0 };
+            if (item.dosage && item.dosage.includes("-")) {
+              const parts = item.dosage.split("-");
+              dosage.morning = parseInt(parts[0]) || 0;
+              dosage.afternoon = parseInt(parts[1]) || 0;
+              dosage.night = parseInt(parts[2]) || 0;
+            } else if (item.dosage) {
+              // If it's a single number, assume it's for morning
+              dosage.morning = parseInt(item.dosage) || 0;
+            }
+
+            // Extract duration from timing
+            let duration = item.timing || "";
+            if (item.timing && item.timing.includes("for")) {
+              const match = item.timing.match(/for (\d+ days?)/i);
+              if (match) {
+                duration = match[1];
+              }
+            }
+
+            // Determine food instructions
+            let food = "with water";
+            if (item.timing) {
+              if (item.timing.includes("before meals")) {
+                food = "before meals";
+              } else if (item.timing.includes("after meals")) {
+                food = "after meals";
+              }
+            }
+
+            return {
+              id: index + 1,
+              name: item.item,
+              strength:
+                item.item.match(/\d+mg/)?.[0] ||
+                item.item.match(/\d+%/)?.[0] ||
+                "",
+              dosage,
+              duration,
+              food,
+              route: item.route || "",
+              notes: item.notes || "",
+              timing: item.timing || "",
+            };
+          }
+        );
+
+        setMedicines(transformedMedicines);
+        setWarnings(data.warnings || []);
+        setLoading(false);
       } catch (err) {
-        console.error('Failed to load prescription data')
-        setLoading(false)
+        console.error("Failed to load prescription data", err);
+        setLoading(false);
       }
+    } else {
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   const renderDosageIcons = (dosage) => {
-    const items = []
-    if (dosage.morning) items.push(<SunIcon key="morning" />)
-    if (dosage.afternoon) items.push(<SunIcon key="afternoon" />)
-    if (dosage.night) items.push(<MoonIcon key="night" />)
-    return items
+    const items = [];
+    if (dosage.morning > 0) items.push(<SunIcon key="morning" />);
+    if (dosage.afternoon > 0) items.push(<SunIcon key="afternoon" />);
+    if (dosage.night > 0) items.push(<MoonIcon key="night" />);
+    return items;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <PrescriptionSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (!prescriptionData || medicines.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto text-center py-12">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            No prescription data available
+          </h1>
+          <button onClick={() => navigate("/")} className="btn-primary">
+            Go Back to Upload
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -39,7 +120,7 @@ export default function PrescriptionViewPage() {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => navigate('/ocr-preview')}
+            onClick={() => navigate("/ocr-preview")}
             className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 mb-4"
           >
             ← Back to OCR Preview
@@ -52,110 +133,197 @@ export default function PrescriptionViewPage() {
           </p>
         </div>
 
+        {/* Patient Information */}
+        <div className="card mb-8">
+          <div className="flex flex-col md:flex-row justify-between gap-6">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                Patient Details
+              </h3>
+              <div className="space-y-2">
+                <p>
+                  <span className="font-medium">Name:</span>{" "}
+                  {prescriptionData.patientDetails.name}
+                </p>
+                <p>
+                  <span className="font-medium">Age:</span>{" "}
+                  {prescriptionData.patientDetails.age}
+                </p>
+                <p>
+                  <span className="font-medium">Date:</span>{" "}
+                  {prescriptionData.patientDetails.date}
+                </p>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                Doctor's Notes
+              </h3>
+              <div className="space-y-2">
+                <p>
+                  <span className="font-medium">Complaint:</span>{" "}
+                  {prescriptionData.doctorsNotes.complaint || "None recorded"}
+                </p>
+                <p>
+                  <span className="font-medium">Impression:</span>{" "}
+                  {prescriptionData.doctorsNotes.impression || "None recorded"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Warnings */}
         {warnings.length > 0 && (
           <div className="mb-8 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r">
-            <p className="font-semibold text-yellow-900 mb-2">Important Notes:</p>
+            <p className="font-semibold text-yellow-900 mb-2">
+              Important Notes:
+            </p>
             <ul className="list-disc list-inside text-sm text-yellow-800 space-y-1">
               {warnings.map((w, i) => (
-                <li key={i}>{w}</li>
+                <li key={i}>{w.message || w}</li>
               ))}
             </ul>
           </div>
         )}
 
         {/* Medicine Cards */}
-        {loading ? (
-          <PrescriptionSkeleton />
-        ) : (
-          <div className="space-y-6">
-            {medicines.map((medicine) => (
-              <div key={medicine.id} className="card hover:shadow-md transition-shadow">
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Left: Medicine Details */}
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                      {medicine.name}
-                    </h3>
-                    <p className="text-lg text-gray-600 mb-4 font-semibold">
-                      {medicine.strength}
-                    </p>
+        <div className="space-y-6">
+          {medicines.map((medicine) => (
+            <div
+              key={medicine.id}
+              className="card hover:shadow-md transition-shadow"
+            >
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Left: Medicine Details */}
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                    {medicine.name}
+                  </h3>
+                  <p className="text-lg text-gray-600 mb-4 font-semibold">
+                    {medicine.strength}
+                  </p>
 
-                    <div className="space-y-3">
-                      {medicine.dosage.morning > 0 && (
-                        <div className="flex items-center gap-3">
-                          <SunIcon />
-                          <span className="text-lg font-semibold text-gray-900">
-                            Morning: {medicine.dosage.morning} tablet
-                          </span>
-                        </div>
-                      )}
-
-                      {medicine.dosage.afternoon > 0 && (
-                        <div className="flex items-center gap-3">
-                          <SunIcon />
-                          <span className="text-lg font-semibold text-gray-900">
-                            Afternoon: {medicine.dosage.afternoon} tablet
-                          </span>
-                        </div>
-                      )}
-
-                      {medicine.dosage.night > 0 && (
-                        <div className="flex items-center gap-3">
-                          <MoonIcon />
-                          <span className="text-lg font-semibold text-gray-900">
-                            Night: {medicine.dosage.night} tablet
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right: Duration & Food */}
-                  <div className="flex flex-col justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-600 mb-2">Duration</p>
-                      <p className="text-2xl font-bold text-green-600 mb-6">
-                        {medicine.duration}
-                      </p>
-                    </div>
-
-                    <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <PlateIcon />
-                        <p className="font-semibold text-gray-900">Food Instructions</p>
+                  <div className="space-y-3">
+                    {medicine.dosage.morning > 0 && (
+                      <div className="flex items-center gap-3">
+                        <SunIcon />
+                        <span className="text-lg font-semibold text-gray-900">
+                          Morning: {medicine.dosage.morning}{" "}
+                          {medicine.route === "iv" ? "units" : "tablet"}
+                        </span>
                       </div>
-                      <p className="text-lg text-gray-700 font-medium">
-                        Take {medicine.food}
-                      </p>
-                    </div>
+                    )}
+
+                    {medicine.dosage.afternoon > 0 && (
+                      <div className="flex items-center gap-3">
+                        <SunIcon />
+                        <span className="text-lg font-semibold text-gray-900">
+                          Afternoon: {medicine.dosage.afternoon}{" "}
+                          {medicine.route === "iv" ? "units" : "tablet"}
+                        </span>
+                      </div>
+                    )}
+
+                    {medicine.dosage.night > 0 && (
+                      <div className="flex items-center gap-3">
+                        <MoonIcon />
+                        <span className="text-lg font-semibold text-gray-900">
+                          Night: {medicine.dosage.night}{" "}
+                          {medicine.route === "iv" ? "units" : "tablet"}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Icon Timeline */}
+                {/* Right: Duration & Food */}
+                <div className="flex flex-col justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600 mb-2">
+                      Duration
+                    </p>
+                    <p className="text-2xl font-bold text-green-600 mb-6">
+                      {medicine.duration}
+                    </p>
+                  </div>
+
+                  <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <PlateIcon />
+                      <p className="font-semibold text-gray-900">
+                        Food Instructions
+                      </p>
+                    </div>
+                    <p className="text-lg text-gray-700 font-medium">
+                      Take {medicine.food}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600 mb-1">
+                      Route
+                    </p>
+                    <p className="text-gray-800">
+                      {medicine.route || "Not specified"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600 mb-1">
+                      Timing
+                    </p>
+                    <p className="text-gray-800">
+                      {medicine.timing || "Not specified"}
+                    </p>
+                  </div>
+                </div>
+                {medicine.notes && (
+                  <div className="mt-4">
+                    <p className="text-sm font-semibold text-gray-600 mb-1">
+                      Notes
+                    </p>
+                    <p className="text-gray-800">{medicine.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Icon Timeline */}
+              {(medicine.dosage.morning > 0 ||
+                medicine.dosage.afternoon > 0 ||
+                medicine.dosage.night > 0) && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
-                  <p className="text-sm font-semibold text-gray-600 mb-3">Timeline:</p>
+                  <p className="text-sm font-semibold text-gray-600 mb-3">
+                    Timeline:
+                  </p>
                   <div className="flex gap-3">
                     {renderDosageIcons(medicine.dosage).map((icon, i) => (
-                      <div key={i} className="w-14 h-14 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-200">
+                      <div
+                        key={i}
+                        className="w-14 h-14 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-200"
+                      >
                         {icon}
                       </div>
                     ))}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              )}
+            </div>
+          ))}
+        </div>
 
         {/* Continue Button */}
         <button
-          onClick={() => navigate('/instructions')}
+          onClick={() => navigate("/instructions")}
           className="btn-primary w-full mt-8 text-lg"
         >
           Get Audio Instructions in Your Language
         </button>
       </div>
     </div>
-  )
+  );
 }

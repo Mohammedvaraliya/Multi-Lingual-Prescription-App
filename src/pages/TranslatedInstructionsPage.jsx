@@ -1,77 +1,85 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useLanguage } from '../context/LanguageContext'
-import { useTranslate } from '../hooks/useTranslate'
-import { useAudio } from '../hooks/useAudio'
-import { AudioPlayer } from '../components/AudioPlayer'
-import { getSimplifiedInstructions, generateAudio } from '../utils/api'
-import { PrescriptionSkeleton } from '../components/LoadingSkeletons'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../context/LanguageContext";
+import { AudioPlayer } from "../components/AudioPlayer";
+import { PrescriptionSkeleton } from "../components/LoadingSkeletons";
+
+// Helper function to convert base64 to blob URL
+const base64ToBlobUrl = (base64Data, mimeType = "audio/mp3") => {
+  try {
+    // Remove data URL prefix if present
+    const base64 = base64Data.includes(",")
+      ? base64Data.split(",")[1]
+      : base64Data;
+
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mimeType });
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    console.error("Error converting base64 to blob:", error);
+    return null;
+  }
+};
 
 export default function TranslatedInstructionsPage() {
-  const navigate = useNavigate()
-  const { selectedLanguage } = useLanguage()
-  const [medicines, setMedicines] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [translating, setTranslating] = useState(false)
-  const [generatingAudio, setGeneratingAudio] = useState(false)
-  const [instructions, setInstructions] = useState('')
-  const [translatedInstructions, setTranslatedInstructions] = useState('')
-  const [audioUrl, setAudioUrl] = useState('')
+  const navigate = useNavigate();
+  const { selectedLanguage } = useLanguage();
+  const [loading, setLoading] = useState(true);
+  const [audioUrl, setAudioUrl] = useState("");
+  const [summaryData, setSummaryData] = useState(null);
 
   useEffect(() => {
-    // Get medicines from sessionStorage
-    const stored = sessionStorage.getItem('parsedPrescription')
-    if (stored) {
+    // Get summary data from sessionStorage
+    const storedSummary = sessionStorage.getItem("summaryData");
+    if (storedSummary) {
       try {
-        const data = JSON.parse(stored)
-        setMedicines(data.medicines || [])
-        
-        // Generate simplified instructions
-        const inst = getSimplifiedInstructions(data.medicines || [], selectedLanguage)
-        setInstructions(inst)
-        
-        if (selectedLanguage !== 'en') {
-          translateInstructions(inst)
-        } else {
-          setTranslatedInstructions(inst)
+        const data = JSON.parse(storedSummary);
+        setSummaryData(data);
+
+        // Convert base64 audio to blob URL
+        if (data.audioBase64) {
+          const url = base64ToBlobUrl(data.audioBase64);
+          setAudioUrl(url);
         }
-        
-        setLoading(false)
+
+        setLoading(false);
       } catch (err) {
-        console.error('Failed to load data')
-        setLoading(false)
+        console.error("Failed to load summary data", err);
+        setLoading(false);
       }
     }
-  }, [selectedLanguage])
+  }, [selectedLanguage]);
 
-  const translateInstructions = async (text) => {
-    setTranslating(true)
-    try {
-      // Mock translation
-      const translated = await new Promise(resolve => {
-        setTimeout(() => {
-          resolve(`[${selectedLanguage.toUpperCase()}] ${text}`)
-        }, 600)
-      })
-      setTranslatedInstructions(translated)
-    } catch (err) {
-      console.error('Translation failed')
-      setTranslatedInstructions(text)
-    } finally {
-      setTranslating(false)
-    }
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <PrescriptionSkeleton />
+        </div>
+      </div>
+    );
   }
 
-  const generateAndPlayAudio = async () => {
-    setGeneratingAudio(true)
-    try {
-      const url = await generateAudio(translatedInstructions, selectedLanguage)
-      setAudioUrl(url)
-    } catch (err) {
-      console.error('Audio generation failed')
-    } finally {
-      setGeneratingAudio(false)
-    }
+  if (!summaryData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto text-center py-12">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            No summary data available
+          </h1>
+          <button onClick={() => navigate("/")} className="btn-primary">
+            Go Back to Upload
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -80,7 +88,7 @@ export default function TranslatedInstructionsPage() {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => navigate('/prescription-view')}
+            onClick={() => navigate("/prescription-view")}
             className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 mb-4"
           >
             ← Back to Medicines
@@ -93,64 +101,52 @@ export default function TranslatedInstructionsPage() {
           </p>
         </div>
 
-        {loading ? (
-          <PrescriptionSkeleton />
-        ) : (
-          <div className="space-y-8">
-            {/* Instructions Card */}
-            <div className="card">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">How to Take Your Medicines</h2>
-              
-              <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                <p className="text-lg leading-relaxed text-gray-800 whitespace-pre-line font-medium">
-                  {translating ? (
-                    <span className="text-gray-500 italic">Translating...</span>
-                  ) : (
-                    translatedInstructions || instructions
-                  )}
-                </p>
-              </div>
+        <div className="space-y-8">
+          {/* Instructions Card */}
+          <div className="card">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              How to Take Your Medicines
+            </h2>
 
-              {/* Audio Player */}
-              {audioUrl ? (
-                <AudioPlayer audioUrl={audioUrl} text={translatedInstructions} language={selectedLanguage} />
-              ) : (
-                <button
-                  onClick={generateAndPlayAudio}
-                  disabled={generatingAudio}
-                  className="btn-primary w-full"
-                >
-                  {generatingAudio ? 'Generating Audio...' : 'Play Audio Instructions'}
-                </button>
-              )}
+            <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <p className="text-lg leading-relaxed text-gray-800 whitespace-pre-line font-medium">
+                {summaryData.summaryTranslated || summaryData.summaryEnglish}
+              </p>
             </div>
 
-            {/* Summary */}
-            <div className="card">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Summary</h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                {medicines.map((med) => (
-                  <div key={med.id} className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="font-bold text-gray-900">{med.name}</p>
-                    <p className="text-sm text-gray-600 mt-1">{med.strength}</p>
-                    <p className="text-sm font-semibold text-green-700 mt-2">
-                      For {med.duration}
-                    </p>
-                  </div>
-                ))}
+            {/* Audio Player */}
+            {audioUrl ? (
+              <AudioPlayer
+                audioUrl={audioUrl}
+                text={summaryData.summaryTranslated}
+                language={selectedLanguage}
+              />
+            ) : (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800">Audio not available</p>
               </div>
-            </div>
-
-            {/* Final Action */}
-            <button
-              onClick={() => navigate('/')}
-              className="btn-secondary w-full"
-            >
-              Upload Another Prescription
-            </button>
+            )}
           </div>
-        )}
+
+          {/* Summary */}
+          <div className="card">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              Quick Summary
+            </h3>
+            <div className="bg-blue-50 rounded-lg p-6">
+              <p className="text-gray-800">{summaryData.summaryEnglish}</p>
+            </div>
+          </div>
+
+          {/* Final Action */}
+          <button
+            onClick={() => navigate("/")}
+            className="btn-secondary w-full"
+          >
+            Upload Another Prescription
+          </button>
+        </div>
       </div>
     </div>
-  )
+  );
 }

@@ -47,7 +47,13 @@ export default function HomePage() {
 
     try {
       setLoading(true);
-      const result = await uploadPrescription(file, selectedLanguage);
+
+      // Create FormData to send file and language in the request body
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("targetedValue", selectedLanguage);
+
+      const result = await uploadPrescription(formData);
 
       // Store in sessionStorage for other pages
       sessionStorage.setItem("prescriptionData", JSON.stringify(result));

@@ -6,11 +6,8 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Base URL for the API
 const API_BASE_URL = "https://multi-lingual-prescription-app.onrender.com/api";
 
-export const uploadPrescription = async (file, language) => {
+export const uploadPrescription = async (formData) => {
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-
     const response = await fetch(`${API_BASE_URL}/upload`, {
       method: "POST",
       body: formData,
