@@ -1,0 +1,17 @@
+{
+  "home": {
+    "prescriptionReader": "처방전 리더",
+    "subtitle": "처방전을 업로드하고 당신의 언어로 설명받으세요",
+    "dropHere": "여기에 처방전을 놓으세요",
+    "orClick": "또는 클릭하여 이미지 선택",
+    "selectImage": "이미지 선택",
+    "preview": "미리보기:",
+    "processing": "처리 중...",
+    "continue": "OCR 확인으로 계속하기",
+    "stepUpload": "처방전 업로드",
+    "stepVerify": "텍스트 확인 및 편집",
+    "stepGet": "당신의 언어로 받기",
+    "uploadFailed": "업로드 실패",
+    "tryAgain": "다시 시도해 주세요"
+  }
+}

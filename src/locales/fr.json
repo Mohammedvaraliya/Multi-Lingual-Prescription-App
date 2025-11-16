@@ -1,0 +1,17 @@
+{
+  "home": {
+    "prescriptionReader": "Lecteur d'ordonnance",
+    "subtitle": "Téléchargez votre ordonnance et obtenez des explications dans votre langue",
+    "dropHere": "Déposez l'ordonnance ici",
+    "orClick": "ou cliquez pour sélectionner une image",
+    "selectImage": "Sélectionner une image",
+    "preview": "Aperçu :",
+    "processing": "Traitement en cours...",
+    "continue": "Continuer vers la vérification OCR",
+    "stepUpload": "Télécharger l'ordonnance",
+    "stepVerify": "Vérifier et modifier le texte",
+    "stepGet": "Obtenir dans votre langue",
+    "uploadFailed": "Échec du téléchargement",
+    "tryAgain": "Veuillez réessayer"
+  }
+}

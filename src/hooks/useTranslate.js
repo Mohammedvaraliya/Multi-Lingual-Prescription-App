@@ -1,34 +1,11 @@
-import { useState } from 'react'
-import { translateText } from '../utils/api'
+import { useLanguageContext } from "../context/LanguageContext";
 
 export function useTranslate() {
-  const [translations, setTranslations] = useState({})
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const { messages, locale, setLocale } = useLanguageContext();
 
-  const translate = async (text, targetLanguage) => {
-    setLoading(true)
-    setError(null)
-
-    try {
-      const result = await translateText(text, targetLanguage)
-      setTranslations(prev => ({
-        ...prev,
-        [targetLanguage]: result
-      }))
-      return result
-    } catch (err) {
-      setError(err.message || 'Translation failed')
-      throw err
-    } finally {
-      setLoading(false)
-    }
+  function t(key) {
+    return key.split(".").reduce((obj, k) => obj?.[k], messages) || key;
   }
 
-  return {
-    translations,
-    loading,
-    error,
-    translate,
-  }
+  return { t, locale, setLocale };
 }

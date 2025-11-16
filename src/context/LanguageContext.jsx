@@ -1,32 +1,32 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from "react";
 
-const LanguageContext = createContext()
+const LanguageContext = createContext();
 
 export function LanguageProvider({ children }) {
-  const [selectedLanguage, setSelectedLanguage] = useState('en')
+  const [locale, setLocale] = useState("en");
+  const [messages, setMessages] = useState({});
 
-  const availableLanguages = {
-    en: 'English',
-    hi: 'हिन्दी (Hindi)',
-    gu: 'ગુજરાતી (Gujarati)',
-    mr: 'मराठी (Marathi)',
-    ta: 'தமிழ் (Tamil)',
-    te: 'తెలుగు (Telugu)',
-    kn: 'ಕನ್ನಡ (Kannada)',
-    ml: 'മലയാളം (Malayalam)',
-  }
+  // Load all translation files (Vite feature)
+  const translations = import.meta.glob("../locales/*.json", { eager: true });
+
+  useEffect(() => {
+    const filePath = `../locales/${locale}.json`;
+
+    if (translations[filePath]) {
+      setMessages(translations[filePath].default);
+    } else {
+      console.warn(`Translation file not found: ${filePath}`);
+      setMessages({});
+    }
+  }, [locale]);
 
   return (
-    <LanguageContext.Provider value={{ selectedLanguage, setSelectedLanguage, availableLanguages }}>
+    <LanguageContext.Provider value={{ locale, setLocale, messages }}>
       {children}
     </LanguageContext.Provider>
-  )
+  );
 }
 
-export function useLanguage() {
-  const context = useContext(LanguageContext)
-  if (!context) {
-    throw new Error('useLanguage must be used within LanguageProvider')
-  }
-  return context
+export function useLanguageContext() {
+  return useContext(LanguageContext);
 }

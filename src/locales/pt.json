@@ -1,0 +1,17 @@
+{
+  "home": {
+    "prescriptionReader": "Leitor de receitas",
+    "subtitle": "Carregue sua receita e receba explicações no seu idioma",
+    "dropHere": "Solte a receita aqui",
+    "orClick": "ou clique para selecionar imagem",
+    "selectImage": "Selecionar imagem",
+    "preview": "Pré-visualização:",
+    "processing": "Processando...",
+    "continue": "Continuar para verificação OCR",
+    "stepUpload": "Carregar receita",
+    "stepVerify": "Verificar e editar texto",
+    "stepGet": "Receber no seu idioma",
+    "uploadFailed": "Falha no carregamento",
+    "tryAgain": "Por favor, tente novamente"
+  }
+}

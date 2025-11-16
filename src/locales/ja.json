@@ -1,0 +1,17 @@
+{
+  "home": {
+    "prescriptionReader": "処方箋リーダー",
+    "subtitle": "処方箋をアップロードして、あなたの言語で説明を受けましょう",
+    "dropHere": "ここに処方箋をドロップ",
+    "orClick": "または画像を選択するためにクリック",
+    "selectImage": "画像を選択",
+    "preview": "プレビュー：",
+    "processing": "処理中...",
+    "continue": "OCRチェックに進む",
+    "stepUpload": "処方箋をアップロード",
+    "stepVerify": "テキストを確認・編集",
+    "stepGet": "あなたの言語で取得",
+    "uploadFailed": "アップロード失敗",
+    "tryAgain": "もう一度お試しください"
+  }
+}

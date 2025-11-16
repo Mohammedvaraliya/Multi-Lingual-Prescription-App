@@ -1,0 +1,16 @@
+version: 1
+checksums:
+  cd45f366fd2727f232266877d34abf6c:
+    home/prescriptionReader: 8d680599d7afa72e3d0efced0ff3f22a
+    home/subtitle: 584b4f50e9711f959e29c6ab1e32b141
+    home/dropHere: 04286eeacf6f8f68ec1089bce77751db
+    home/orClick: c55725970190cdea634bfed603fdb017
+    home/selectImage: ae363605fa794d038b6079b6da02658f
+    home/preview: 5315010ff36d8f386c2fabf930f62083
+    home/processing: 4d21e725093ba79328dcedc0f092ab3f
+    home/continue: 6b08e5b50b46f663a34de2cbbabc5d66
+    home/stepUpload: 2d74c8c65b8a4a51a53e195bcd34026c
+    home/stepVerify: eb6f445aa6a7084d2203447260a38454
+    home/stepGet: caa16b8e0bc8b59caad54d1f63244554
+    home/uploadFailed: 5b7b755f05330164dbfb00096c500ee3
+    home/tryAgain: 68ddb0922630a309de49d5be5cc68d53

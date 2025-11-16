@@ -1,10 +1,10 @@
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
-import { LanguageProvider } from "./context/LanguageContext";
 import { PrescriptionProvider } from "./context/PrescriptionContext";
 import HomePage from "./pages/HomePage";
 import OCRPreviewPage from "./pages/OCRPreviewPage";
 import PrescriptionViewPage from "./pages/PrescriptionViewPage";
 import TranslatedInstructionsPage from "./pages/TranslatedInstructionsPage";
+import { LanguageProvider } from "./context/LanguageContext";
 
 function App() {
   return (

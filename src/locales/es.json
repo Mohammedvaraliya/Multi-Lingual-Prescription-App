@@ -1,0 +1,17 @@
+{
+  "home": {
+    "prescriptionReader": "Lector de recetas",
+    "subtitle": "Sube tu receta y recibe una explicación en tu idioma",
+    "dropHere": "Suelta la receta aquí",
+    "orClick": "o haz clic para seleccionar una imagen",
+    "selectImage": "Seleccionar imagen",
+    "preview": "Vista previa:",
+    "processing": "Procesando...",
+    "continue": "Continuar a verificación OCR",
+    "stepUpload": "Subir receta",
+    "stepVerify": "Verificar y editar texto",
+    "stepGet": "Obtener en tu idioma",
+    "uploadFailed": "Error al subir",
+    "tryAgain": "Por favor, inténtalo de nuevo"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "home": {
+    "prescriptionReader": "Prescription reader",
+    "subtitle": "Upload your prescription and get it explained in your language",
+    "dropHere": "Drop prescription here",
+    "orClick": "or click to select image",
+    "selectImage": "Select image",
+    "preview": "Preview:",
+    "processing": "Processing...",
+    "continue": "Continue to OCR check",
+    "stepUpload": "Upload prescription",
+    "stepVerify": "Verify & edit text",
+    "stepGet": "Get in your language",
+    "uploadFailed": "Upload failed",
+    "tryAgain": "Please try again"
+  }
+}

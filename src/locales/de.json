@@ -1,0 +1,17 @@
+{
+  "home": {
+    "prescriptionReader": "Rezept-Leser",
+    "subtitle": "Laden Sie Ihr Rezept hoch und lassen Sie es in Ihrer Sprache erklären",
+    "dropHere": "Rezept hier ablegen",
+    "orClick": "oder klicken Sie, um ein Bild auszuwählen",
+    "selectImage": "Bild auswählen",
+    "preview": "Vorschau:",
+    "processing": "Wird verarbeitet...",
+    "continue": "Weiter zur OCR-Überprüfung",
+    "stepUpload": "Rezept hochladen",
+    "stepVerify": "Text überprüfen & bearbeiten",
+    "stepGet": "In Ihrer Sprache erhalten",
+    "uploadFailed": "Upload fehlgeschlagen",
+    "tryAgain": "Bitte versuchen Sie es erneut"
+  }
+}

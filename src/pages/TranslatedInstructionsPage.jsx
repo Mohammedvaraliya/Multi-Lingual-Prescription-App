@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../context/LanguageContext";
+import { useLanguageContext } from "../context/LanguageContext";
 import { AudioPlayer } from "../components/AudioPlayer";
 import { PrescriptionSkeleton } from "../components/LoadingSkeletons";
 
@@ -30,7 +30,7 @@ const base64ToBlobUrl = (base64Data, mimeType = "audio/mp3") => {
 
 export default function TranslatedInstructionsPage() {
   const navigate = useNavigate();
-  const { selectedLanguage } = useLanguage();
+  const { selectedLanguage } = useLanguageContext();
   const [loading, setLoading] = useState(true);
   const [audioUrl, setAudioUrl] = useState("");
   const [summaryData, setSummaryData] = useState(null);

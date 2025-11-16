@@ -1,0 +1,17 @@
+{
+  "home": {
+    "prescriptionReader": "处方阅读器",
+    "subtitle": "上传您的处方，并以您的语言获取解释",
+    "dropHere": "将处方拖到此处",
+    "orClick": "或点击以选择图片",
+    "selectImage": "选择图片",
+    "preview": "预览：",
+    "processing": "处理中...",
+    "continue": "继续进行OCR检查",
+    "stepUpload": "上传处方",
+    "stepVerify": "验证并编辑文本",
+    "stepGet": "以您的语言获取",
+    "uploadFailed": "上传失败",
+    "tryAgain": "请再试一次"
+  }
+}

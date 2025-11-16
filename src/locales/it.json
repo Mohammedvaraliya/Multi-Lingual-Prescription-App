@@ -1,0 +1,17 @@
+{
+  "home": {
+    "prescriptionReader": "Lettore di prescrizioni",
+    "subtitle": "Carica la tua prescrizione e ottieni la spiegazione nella tua lingua",
+    "dropHere": "Trascina qui la prescrizione",
+    "orClick": "o clicca per selezionare un'immagine",
+    "selectImage": "Seleziona immagine",
+    "preview": "Anteprima:",
+    "processing": "Elaborazione in corso...",
+    "continue": "Continua al controllo OCR",
+    "stepUpload": "Carica prescrizione",
+    "stepVerify": "Verifica e modifica testo",
+    "stepGet": "Ottieni nella tua lingua",
+    "uploadFailed": "Caricamento fallito",
+    "tryAgain": "Per favore riprova"
+  }
+}
